@@ -13,7 +13,7 @@
   <div class="bg-grid"></div>
   <header>
     <h1>COD MOBILE</h1>
-    <p class="subtitle">Server Ping Tester · Player Stats</p>
+    <p class="subtitle">Server Ping Tester · Player Stats · Friends</p>
   </header>
 
   <main>
@@ -37,7 +37,19 @@
         <button id="lookup-btn" class="btn primary">Lookup</button>
       </div>
       <div id="stats-result" class="stats-result hidden"></div>
-      <p class="hint">Uses an unofficial public API (webstore data). Shows level, multiplayer rank & rating.</p>
+      <p class="hint">Uses an unofficial public API (webstore data). Shows level, multiplayer rank & rating. Save friends below.</p>
+    </section>
+
+    <!-- FRIENDS SECTION -->
+    <section class="card" id="friends-section">
+      <div class="card-header">
+        <h2>👥 Friends</h2>
+        <button id="refresh-friends" class="btn secondary" title="Refresh all">Refresh</button>
+      </div>
+      <p class="hint">Saved on this device. Lookup a player above, then hit Save to Friends.</p>
+      <div id="friends-list" class="friends-list">
+        <p class="empty-friends" id="empty-friends">No friends saved yet.</p>
+      </div>
     </section>
   </main>
 
