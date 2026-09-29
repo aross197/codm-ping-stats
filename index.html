@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COD Mobile · Ping & Stats</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header>
+    <h1>COD MOBILE</h1>
+    <p class="subtitle">Server Ping Tester · Player Stats</p>
+  </header>
+
+  <main>
+    <!-- PING SECTION -->
+    <section class="card" id="ping-section">
+      <div class="card-header">
+        <h2>⚡ Server Regions</h2>
+        <button id="test-all" class="btn primary">Test All</button>
+      </div>
+      <p class="hint">Browser latency estimates to cloud regions used by COD Mobile. In-game ping will usually be a bit lower.</p>
+      <div id="regions" class="regions-grid"></div>
+    </section>
+
+    <!-- STATS SECTION -->
+    <section class="card" id="stats-section">
+      <div class="card-header">
+        <h2>👤 Player Stats</h2>
+      </div>
+      <div class="lookup">
+        <input type="text" id="player-input" placeholder="Nickname or UID" autocomplete="off" />
+        <button id="lookup-btn" class="btn primary">Lookup</button>
+      </div>
+      <div id="stats-result" class="stats-result hidden"></div>
+      <p class="hint">Uses an unofficial public API (webstore data). Shows level, multiplayer rank & rating.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Open source · Hosted on GitHub Pages · Not affiliated with Activision / TiMi</p>
+    <p class="small">Real game servers use proprietary UDP. These are regional proxies for comparison only.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
