@@ -38,7 +38,6 @@ function escapeAttr(str) {
   return escapeHtml(str).replace(/'/g, '&#39;');
 }
 
-// Clan config
 (function applyClanConfig() {
   if (typeof CLAN === 'undefined') return;
   const set = (id, val) => {
@@ -52,7 +51,6 @@ function escapeAttr(str) {
   set('clan-recruit', CLAN.recruit);
   set('footer-name', CLAN.name);
   document.title = (CLAN.name || 'Clan') + ' · COD Mobile Clan';
-
   if (CLAN.discord) {
     const wrap = document.getElementById('discord-wrap');
     const link = document.getElementById('discord-link');
@@ -70,7 +68,6 @@ document.querySelectorAll('.nav-link').forEach(link => {
   });
 });
 
-// Pings
 REGIONS.forEach(r => {
   const row = document.createElement('div');
   row.className = 'region-row';
@@ -91,9 +88,7 @@ async function runAllPings() {
   testAllBtn.disabled = true;
   testAllBtn.textContent = 'Testing…';
   bestPingRegion = null;
-  for (const r of REGIONS) {
-    await testRegion(r.id);
-  }
+  for (const r of REGIONS) await testRegion(r.id);
   testAllBtn.disabled = false;
   testAllBtn.textContent = 'Test All';
   updateHeroBestPing();
@@ -105,7 +100,6 @@ async function testRegion(id) {
   if (!el || !region) return;
   el.textContent = '…';
   el.className = 'ping-value pending';
-
   try {
     const samples = [];
     for (let i = 0; i < 4; i++) {
@@ -135,33 +129,32 @@ function updateHeroBestPing() {
   }
 }
 
-// Stats API with CORS fallbacks
 async function fetchPlayer(q) {
   const target = API_BASE + encodeURIComponent(q);
-  const urls = [
-    target,
-    'https://corsproxy.io/?' + encodeURIComponent(target),
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(target),
-  ];
 
-  let lastErr = null;
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+  // 1) Direct (works if API ever sends CORS headers)
+  try {
+    const res = await fetch(target, { cache: 'no-store' });
+    if (res.ok) {
       const data = await res.json();
-      if (!data || data.success === false) {
-        throw new Error((data && data.error) || 'Player not found');
-      }
-      // Normalize: some proxies wrap; direct API returns success + fields
-      if (data.success && (data.nickname || data.shortId || data.level)) return data;
-      if (data.nickname || data.shortId) return data;
-      throw new Error('Player not found');
-    } catch (e) {
-      lastErr = e;
+      if (data && data.success !== false && (data.nickname || data.shortId || data.level)) return data;
     }
+  } catch (e) { /* CORS expected */ }
+
+  // 2) allorigins (reliable free CORS proxy)
+  const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(target);
+  const res = await fetch(proxyUrl, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Network error');
+  const wrap = await res.json();
+  let data = wrap.contents;
+  if (typeof data === 'string') {
+    try { data = JSON.parse(data); } catch (e) { throw new Error('Bad API response'); }
   }
-  throw lastErr || new Error('Lookup failed');
+  if (!data || data.success === false) {
+    throw new Error((data && data.error) || 'Player not found');
+  }
+  if (!(data.nickname || data.shortId || data.level)) throw new Error('Player not found');
+  return data;
 }
 
 function playerKey(data) {
@@ -176,12 +169,10 @@ playerInput.addEventListener('keydown', e => {
 async function lookupPlayer() {
   const q = playerInput.value.trim();
   if (!q) return;
-
   lookupBtn.disabled = true;
   lookupBtn.textContent = '…';
   statsResult.classList.add('hidden');
   statsResult.innerHTML = '';
-
   try {
     const data = await fetchPlayer(q);
     renderLookupResult(data);
@@ -220,7 +211,6 @@ function renderLookupResult(data) {
       (alreadySaved ? 'secondary' : 'primary') + '" ' + (alreadySaved ? 'disabled' : '') + '>' +
       (alreadySaved ? 'In Clan' : 'Add to Clan') +
     '</button>';
-
   statsResult.classList.remove('hidden');
 
   const saveBtn = document.getElementById('save-friend-btn');
@@ -235,17 +225,12 @@ function renderLookupResult(data) {
 }
 
 function getFriends() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch (e) {
-    return [];
-  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch (e) { return []; }
 }
-
 function setFriends(list) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
-
 function memberFromApi(data) {
   return {
     nickname: data.nickname,
@@ -258,21 +243,17 @@ function memberFromApi(data) {
     query: data.shortId || data.nickname,
   };
 }
-
 function addFriend(data) {
   const list = getFriends();
-  const key = playerKey(data);
-  if (list.some(f => playerKey(f) === key)) return;
+  if (list.some(f => playerKey(f) === playerKey(data))) return;
   list.unshift(memberFromApi(data));
   setFriends(list);
   renderFriends();
 }
-
 function removeFriend(key) {
   setFriends(getFriends().filter(f => playerKey(f) !== String(key).toLowerCase()));
   renderFriends();
 }
-
 function updateHeroRosterStats() {
   const list = getFriends();
   const countEl = document.getElementById('roster-count');
@@ -285,18 +266,15 @@ function updateHeroRosterStats() {
       : '—';
   }
 }
-
 function renderFriends() {
   const list = getFriends();
   friendsListEl.querySelectorAll('.friend-card').forEach(el => el.remove());
-
-  if (list.length === 0) {
+  if (!list.length) {
     emptyFriendsEl.style.display = 'block';
     updateHeroRosterStats();
     return;
   }
   emptyFriendsEl.style.display = 'none';
-
   list.forEach(f => {
     const key = playerKey(f);
     const card = document.createElement('div');
@@ -320,7 +298,6 @@ function renderFriends() {
       '</div>';
     friendsListEl.appendChild(card);
   });
-
   friendsListEl.querySelectorAll('.remove-one').forEach(btn => {
     btn.addEventListener('click', () => removeFriend(btn.dataset.key));
   });
@@ -329,7 +306,6 @@ function renderFriends() {
   });
   updateHeroRosterStats();
 }
-
 async function refreshOneFriend(query, btn) {
   if (!query) return;
   btn.disabled = true;
@@ -348,24 +324,18 @@ async function refreshOneFriend(query, btn) {
     }
   } catch (e) {
     btn.textContent = '!';
-    setTimeout(() => {
-      btn.textContent = '↻';
-      btn.disabled = false;
-    }, 1200);
+    setTimeout(() => { btn.textContent = '↻'; btn.disabled = false; }, 1200);
   }
 }
-
 refreshFriendsBtn.addEventListener('click', async () => {
   const list = getFriends();
   if (!list.length) return;
   refreshFriendsBtn.disabled = true;
   refreshFriendsBtn.textContent = '…';
   for (let i = 0; i < list.length; i++) {
-    const f = list[i];
     try {
-      const data = await fetchPlayer(f.query || f.shortId || f.nickname);
-      list[i] = memberFromApi(data);
-    } catch (e) { /* keep old */ }
+      list[i] = memberFromApi(await fetchPlayer(list[i].query || list[i].shortId || list[i].nickname));
+    } catch (e) { /* keep */ }
   }
   setFriends(list);
   renderFriends();
@@ -373,6 +343,5 @@ refreshFriendsBtn.addEventListener('click', async () => {
   refreshFriendsBtn.textContent = '↻ Refresh';
 });
 
-// Boot
 renderFriends();
-setTimeout(() => runAllPings(), 600);
+setTimeout(() => runAllPings(), 500);
