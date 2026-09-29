@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NIGHT RAID · COD Mobile Clan</title>
   <meta name="description" content="Official NIGHT RAID clan hub — roster, server pings, player stats for Call of Duty: Mobile." />
+  <meta name="theme-color" content="#06080c" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%06080c'/><text y='.9em' font-size='80' x='10' fill='%2300e5a0'>◈</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,11 +19,10 @@
     <div class="scanline"></div>
   </div>
 
-  <!-- HERO / CLAN BRANDING -->
   <header class="hero">
     <div class="hero-badge">CLAN HQ</div>
     <div class="clan-logo">
-      <span class="logo-icon">◈</span>
+      <div class="logo-diamond" aria-hidden="true"><span>◈</span></div>
     </div>
     <h1 class="clan-name" id="clan-name">NIGHT RAID</h1>
     <p class="clan-tag">[<span id="clan-tag">NR</span>]</p>
@@ -37,8 +38,11 @@
       </div>
       <div class="hero-stat">
         <span class="stat-num accent" id="best-ping">—</span>
-        <span class="stat-label">Best Region</span>
+        <span class="stat-label">Best Ping</span>
       </div>
+    </div>
+    <div id="discord-wrap" class="discord-wrap hidden">
+      <a id="discord-link" class="btn primary discord-btn" href="#" target="_blank" rel="noopener">Join Discord</a>
     </div>
   </header>
 
@@ -50,19 +54,17 @@
   </nav>
 
   <main>
-    <!-- ROSTER -->
     <section class="card" id="roster">
       <div class="card-header">
         <h2><span class="icon">⚔</span> Clan Roster</h2>
         <button id="refresh-friends" class="btn secondary" title="Refresh all stats">↻ Refresh</button>
       </div>
-      <p class="hint">Add members via Lookup below · saved on this device</p>
+      <p class="hint">Add members via Lookup · saved on this device</p>
       <div id="friends-list" class="roster-grid">
         <p class="empty-friends" id="empty-friends">No members yet. Lookup a player and hit <strong>Add to Clan</strong>.</p>
       </div>
     </section>
 
-    <!-- PING -->
     <section class="card" id="ping">
       <div class="card-header">
         <h2><span class="icon">⚡</span> Server Regions</h2>
@@ -72,20 +74,18 @@
       <div id="regions" class="regions-grid"></div>
     </section>
 
-    <!-- LOOKUP -->
     <section class="card" id="lookup">
       <div class="card-header">
         <h2><span class="icon">◎</span> Player Lookup</h2>
       </div>
       <div class="lookup">
-        <input type="text" id="player-input" placeholder="Nickname or UID…" autocomplete="off" />
+        <input type="text" id="player-input" placeholder="Nickname or UID…" autocomplete="off" spellcheck="false" />
         <button id="lookup-btn" class="btn primary">Lookup</button>
       </div>
       <div id="stats-result" class="stats-result hidden"></div>
-      <p class="hint">Pulls level, rank & rating from public webstore data.</p>
+      <p class="hint">Level, rank & rating from public webstore data.</p>
     </section>
 
-    <!-- ABOUT -->
     <section class="card" id="about">
       <div class="card-header">
         <h2><span class="icon">◆</span> About the Clan</h2>
@@ -106,8 +106,8 @@
         </div>
         <div class="about-block">
           <h3>Recruitment</h3>
-          <p>DM a leader in-game or drop your UID in the clan Discord. We’ll pull your stats and get back to you.</p>
-          <p class="edit-tip">Edit clan name, tag & motto in <code>config.js</code></p>
+          <p id="clan-recruit">DM a leader in-game or drop your UID in the clan Discord. We will pull your stats and get back to you.</p>
+          <p class="edit-tip">Customize everything in <code>config.js</code></p>
         </div>
       </div>
     </section>
@@ -115,7 +115,7 @@
 
   <footer>
     <div class="footer-brand">
-      <span class="logo-icon sm">◈</span>
+      <div class="logo-diamond sm" aria-hidden="true"><span>◈</span></div>
       <span id="footer-name">NIGHT RAID</span>
     </div>
     <p>COD Mobile Clan Hub · Not affiliated with Activision / TiMi</p>
