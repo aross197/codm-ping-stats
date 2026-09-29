@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NIGHT RAID · COD Mobile Clan</title>
-  <meta name="description" content="Official NIGHT RAID clan hub — roster, server pings, player stats for Call of Duty: Mobile." />
+  <meta name="description" content="Clan HQ — roster, pings, stats, streams & schedule for Call of Duty: Mobile." />
   <meta name="theme-color" content="#06080c" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%06080c'/><text y='.9em' font-size='80' x='10' fill='%2300e5a0'>◈</text></svg>" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2306080c'/><text y='.92em' font-size='72' x='14' fill='%2300e5a0'>◈</text></svg>" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,7 +28,7 @@
     <h1 class="clan-name" id="clan-name">NIGHT RAID</h1>
     <p class="clan-tag">[<span id="clan-tag">NR</span>]</p>
     <p class="clan-motto" id="clan-motto">Strike fast. Leave nothing.</p>
-    <div class="hero-stats" id="hero-stats">
+    <div class="hero-stats">
       <div class="hero-stat">
         <span class="stat-num" id="roster-count">0</span>
         <span class="stat-label">Members</span>
@@ -41,59 +42,106 @@
         <span class="stat-label">Best Ping</span>
       </div>
     </div>
-    <div id="discord-wrap" class="discord-wrap hidden">
-      <a id="discord-link" class="btn primary discord-btn" href="#" target="_blank" rel="noopener">Join Discord</a>
+    <div class="hero-actions">
+      <div id="discord-wrap" class="hidden">
+        <a id="discord-link" class="btn primary" href="#" target="_blank" rel="noopener">Join Discord</a>
+      </div>
+      <button type="button" id="share-roster-btn" class="btn secondary">Share Roster</button>
     </div>
   </header>
 
   <nav class="clan-nav">
     <a href="#roster" class="nav-link active">Roster</a>
+    <a href="#streams" class="nav-link">Watch</a>
+    <a href="#schedule" class="nav-link">Schedule</a>
     <a href="#ping" class="nav-link">Pings</a>
     <a href="#lookup" class="nav-link">Lookup</a>
+    <a href="#guide" class="nav-link">UID</a>
     <a href="#about" class="nav-link">About</a>
   </nav>
 
   <main>
+    <!-- ROSTER -->
     <section class="card" id="roster">
       <div class="card-header">
         <h2><span class="icon">⚔</span> Clan Roster</h2>
-        <button id="refresh-friends" class="btn secondary" title="Refresh all stats">↻ Refresh</button>
+        <button type="button" id="refresh-friends" class="btn secondary">↻ Refresh</button>
       </div>
-      <p class="hint">Add members via Lookup · saved on this device</p>
+      <p class="hint">Seed members load from config · personal adds stay on this device</p>
       <div id="friends-list" class="roster-grid">
         <p class="empty-friends" id="empty-friends">No members yet. Lookup a player and hit <strong>Add to Clan</strong>.</p>
       </div>
     </section>
 
+    <!-- STREAMS -->
+    <section class="card" id="streams">
+      <div class="card-header">
+        <h2><span class="icon">▶</span> Watch / Streams</h2>
+      </div>
+      <p class="hint">Clan streams from config · not live match spectating (game-only)</p>
+      <div id="streams-list" class="streams-grid">
+        <p class="empty-block" id="streams-empty">No streams configured. Add entries in <code>config.js</code> → <code>streams</code>.</p>
+      </div>
+    </section>
+
+    <!-- SCHEDULE -->
+    <section class="card" id="schedule">
+      <div class="card-header">
+        <h2><span class="icon">◷</span> Schedule</h2>
+      </div>
+      <p class="hint">Scrims & ranked nights · edit <code>config.js</code> → <code>schedule</code></p>
+      <div id="schedule-list" class="schedule-list">
+        <p class="empty-block" id="schedule-empty">No events listed yet.</p>
+      </div>
+    </section>
+
+    <!-- PINGS -->
     <section class="card" id="ping">
       <div class="card-header">
         <h2><span class="icon">⚡</span> Server Regions</h2>
-        <button id="test-all" class="btn primary">Test All</button>
+        <button type="button" id="test-all" class="btn primary">Test All</button>
       </div>
-      <p class="hint">Latency to cloud regions COD Mobile uses. In-game HUD is the final word.</p>
+      <p class="hint">Browser latency to regions COD Mobile uses · in-game HUD is final</p>
       <div id="regions" class="regions-grid"></div>
     </section>
 
+    <!-- LOOKUP -->
     <section class="card" id="lookup">
       <div class="card-header">
         <h2><span class="icon">◎</span> Player Lookup</h2>
       </div>
       <div class="lookup">
         <input type="text" id="player-input" placeholder="Nickname or UID…" autocomplete="off" spellcheck="false" />
-        <button id="lookup-btn" class="btn primary">Lookup</button>
+        <button type="button" id="lookup-btn" class="btn primary">Lookup</button>
       </div>
       <div id="stats-result" class="stats-result hidden"></div>
-      <p class="hint">Level, rank & rating from public webstore data.</p>
+      <p class="hint">Public webstore profile data · Add to Clan after lookup</p>
     </section>
 
+    <!-- UID GUIDE -->
+    <section class="card" id="guide">
+      <div class="card-header">
+        <h2><span class="icon">?</span> Find your UID</h2>
+      </div>
+      <ol class="guide-steps">
+        <li>Open <strong>Call of Duty: Mobile</strong></li>
+        <li>Tap your <strong>avatar</strong> (top left)</li>
+        <li>Open the <strong>Basic</strong> tab</li>
+        <li>Copy the long number under your name — that’s your <strong>UID</strong></li>
+        <li>Paste it in Lookup above → <strong>Add to Clan</strong></li>
+      </ol>
+      <p class="hint">Nickname works too if typed exactly (including special characters).</p>
+    </section>
+
+    <!-- ABOUT / RECRUIT -->
     <section class="card" id="about">
       <div class="card-header">
-        <h2><span class="icon">◆</span> About the Clan</h2>
+        <h2><span class="icon">◆</span> About & Recruit</h2>
       </div>
       <div class="about-grid">
         <div class="about-block">
           <h3>Who we are</h3>
-          <p id="clan-about">Competitive multiplayer & ranked grinders. We value clean comms, high K/D, and late-night raids. No toxicity — only results.</p>
+          <p id="clan-about">Competitive multiplayer & ranked grinders.</p>
         </div>
         <div class="about-block">
           <h3>Requirements</h3>
@@ -106,8 +154,9 @@
         </div>
         <div class="about-block">
           <h3>Recruitment</h3>
-          <p id="clan-recruit">DM a leader in-game or drop your UID in the clan Discord. We will pull your stats and get back to you.</p>
-          <p class="edit-tip">Customize everything in <code>config.js</code></p>
+          <p id="clan-recruit">Lookup your UID, Add to Clan, then contact us.</p>
+          <div class="recruit-actions" id="recruit-actions"></div>
+          <p class="edit-tip">Customize in <code>config.js</code></p>
         </div>
       </div>
     </section>
@@ -119,8 +168,10 @@
       <span id="footer-name">NIGHT RAID</span>
     </div>
     <p>COD Mobile Clan Hub · Not affiliated with Activision / TiMi</p>
-    <p class="small">Open source on GitHub · Pings are regional estimates</p>
+    <p class="small">No live match spectating from web · streams are embeds only</p>
   </footer>
+
+  <div id="toast" class="toast hidden" role="status"></div>
 
   <script src="config.js"></script>
   <script src="app.js"></script>
