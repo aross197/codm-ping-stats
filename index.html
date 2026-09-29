@@ -3,61 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>COD Mobile · Ping & Stats</title>
+  <title>NIGHT RAID · COD Mobile Clan</title>
+  <meta name="description" content="Official NIGHT RAID clan hub — roster, server pings, player stats for Call of Duty: Mobile." />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <div class="bg-grid"></div>
-  <header>
-    <h1>COD MOBILE</h1>
-    <p class="subtitle">Server Ping Tester · Player Stats · Friends</p>
+  <div class="bg-effects">
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+    <div class="scanline"></div>
+  </div>
+
+  <!-- HERO / CLAN BRANDING -->
+  <header class="hero">
+    <div class="hero-badge">CLAN HQ</div>
+    <div class="clan-logo">
+      <span class="logo-icon">◈</span>
+    </div>
+    <h1 class="clan-name" id="clan-name">NIGHT RAID</h1>
+    <p class="clan-tag">[<span id="clan-tag">NR</span>]</p>
+    <p class="clan-motto" id="clan-motto">Strike fast. Leave nothing.</p>
+    <div class="hero-stats" id="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-num" id="roster-count">0</span>
+        <span class="stat-label">Members</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num" id="avg-rating">—</span>
+        <span class="stat-label">Avg Rating</span>
+      </div>
+      <div class="hero-stat">
+        <span class="stat-num accent" id="best-ping">—</span>
+        <span class="stat-label">Best Region</span>
+      </div>
+    </div>
   </header>
 
+  <nav class="clan-nav">
+    <a href="#roster" class="nav-link active">Roster</a>
+    <a href="#ping" class="nav-link">Pings</a>
+    <a href="#lookup" class="nav-link">Lookup</a>
+    <a href="#about" class="nav-link">About</a>
+  </nav>
+
   <main>
-    <!-- PING SECTION -->
-    <section class="card" id="ping-section">
+    <!-- ROSTER -->
+    <section class="card" id="roster">
       <div class="card-header">
-        <h2>⚡ Server Regions</h2>
+        <h2><span class="icon">⚔</span> Clan Roster</h2>
+        <button id="refresh-friends" class="btn secondary" title="Refresh all stats">↻ Refresh</button>
+      </div>
+      <p class="hint">Add members via Lookup below · saved on this device</p>
+      <div id="friends-list" class="roster-grid">
+        <p class="empty-friends" id="empty-friends">No members yet. Lookup a player and hit <strong>Add to Clan</strong>.</p>
+      </div>
+    </section>
+
+    <!-- PING -->
+    <section class="card" id="ping">
+      <div class="card-header">
+        <h2><span class="icon">⚡</span> Server Regions</h2>
         <button id="test-all" class="btn primary">Test All</button>
       </div>
-      <p class="hint">Browser latency estimates to cloud regions used by COD Mobile. In-game ping will usually be a bit lower.</p>
+      <p class="hint">Latency to cloud regions COD Mobile uses. In-game HUD is the final word.</p>
       <div id="regions" class="regions-grid"></div>
     </section>
 
-    <!-- STATS SECTION -->
-    <section class="card" id="stats-section">
+    <!-- LOOKUP -->
+    <section class="card" id="lookup">
       <div class="card-header">
-        <h2>👤 Player Stats</h2>
+        <h2><span class="icon">◎</span> Player Lookup</h2>
       </div>
       <div class="lookup">
-        <input type="text" id="player-input" placeholder="Nickname or UID" autocomplete="off" />
+        <input type="text" id="player-input" placeholder="Nickname or UID…" autocomplete="off" />
         <button id="lookup-btn" class="btn primary">Lookup</button>
       </div>
       <div id="stats-result" class="stats-result hidden"></div>
-      <p class="hint">Uses an unofficial public API (webstore data). Shows level, multiplayer rank & rating. Save friends below.</p>
+      <p class="hint">Pulls level, rank & rating from public webstore data.</p>
     </section>
 
-    <!-- FRIENDS SECTION -->
-    <section class="card" id="friends-section">
+    <!-- ABOUT -->
+    <section class="card" id="about">
       <div class="card-header">
-        <h2>👥 Friends</h2>
-        <button id="refresh-friends" class="btn secondary" title="Refresh all">Refresh</button>
+        <h2><span class="icon">◆</span> About the Clan</h2>
       </div>
-      <p class="hint">Saved on this device. Lookup a player above, then hit Save to Friends.</p>
-      <div id="friends-list" class="friends-list">
-        <p class="empty-friends" id="empty-friends">No friends saved yet.</p>
+      <div class="about-grid">
+        <div class="about-block">
+          <h3>Who we are</h3>
+          <p id="clan-about">Competitive multiplayer & ranked grinders. We value clean comms, high K/D, and late-night raids. No toxicity — only results.</p>
+        </div>
+        <div class="about-block">
+          <h3>Requirements</h3>
+          <ul class="req-list">
+            <li>Active ranked play</li>
+            <li>Mic preferred</li>
+            <li>Respect the squad</li>
+            <li>Push objectives</li>
+          </ul>
+        </div>
+        <div class="about-block">
+          <h3>Recruitment</h3>
+          <p>DM a leader in-game or drop your UID in the clan Discord. We’ll pull your stats and get back to you.</p>
+          <p class="edit-tip">Edit clan name, tag & motto in <code>config.js</code></p>
+        </div>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>Open source · Hosted on GitHub Pages · Not affiliated with Activision / TiMi</p>
-    <p class="small">Real game servers use proprietary UDP. These are regional proxies for comparison only.</p>
+    <div class="footer-brand">
+      <span class="logo-icon sm">◈</span>
+      <span id="footer-name">NIGHT RAID</span>
+    </div>
+    <p>COD Mobile Clan Hub · Not affiliated with Activision / TiMi</p>
+    <p class="small">Open source on GitHub · Pings are regional estimates</p>
   </footer>
 
+  <script src="config.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
