@@ -1,44 +1,59 @@
 # NIGHT RAID · COD Mobile Clan HQ
 
-A dark, neon clan website for Call of Duty: Mobile — roster, server pings, and player lookup.
+Full clan website for Call of Duty: Mobile.
 
 **Live (after enabling Pages):** https://aross197.github.io/codm-ping-stats/
 
 ## Features
 
-- **Clan branding** — name, tag, motto, about text (edit `config.js`)
-- **Roster** — add members by nickname/UID, refresh stats, remove
-- **Hero stats** — member count, average rating, best region ping
-- **Server ping tester** — 11 regions used by COD Mobile
-- **Player lookup** — level, rank, rating, country
+- Clan branding (name, tag, motto, accent color, Discord, email)
+- Roster with local + **seed members** from config
+- Player lookup (nickname / UID) → Add to Clan
+- Server region ping tester (auto on load)
+- **Watch** — Twitch / YouTube embeds from config
+- **Schedule** — scrims & ranked nights
+- UID how-to guide
+- Recruit actions (Discord / email)
+- Share roster (clipboard / native share)
+- Toast feedback, mobile-ready UI
 
-## Customize your clan
-
-Open `config.js` and change:
+## Customize (`config.js`)
 
 ```js
 const CLAN = {
   name: 'NIGHT RAID',
   tag: 'NR',
   motto: 'Strike fast. Leave nothing.',
-  about: 'Your clan description…',
+  about: '…',
+  recruit: '…',
+  discord: 'https://discord.gg/your-invite',
+  email: 'clan@example.com',
+  accent: '#00e5a0',
+  seedRoster: [
+    { query: 'YourUID', role: 'Leader' },
+    { query: 'FriendNick', role: 'Member' },
+  ],
+  streams: [
+    { name: 'Captain', type: 'twitch', id: 'channelname', note: 'Ranked' },
+    { name: 'VOD', type: 'youtube', id: 'VIDEO_ID', note: 'Scrim' },
+  ],
+  schedule: [
+    { title: 'Ranked Push', when: 'Fri 9pm', mode: 'Hardpoint', note: 'Mic on' },
+  ],
 };
 ```
 
 ## Enable GitHub Pages
 
-1. Repo → **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: `main` · folder: `/ (root)` → Save
-4. Open https://aross197.github.io/codm-ping-stats/
+1. https://github.com/aross197/codm-ping-stats/settings/pages  
+2. Source: **Deploy from a branch** → `main` / `/ (root)` → Save  
+3. Open https://aross197.github.io/codm-ping-stats/
 
-## Notes
+## Limits (by design)
 
-- Roster is stored in the browser (localStorage) on each device
-- Pings are HTTPS estimates to regional cloud endpoints — in-game HUD is authoritative
-- Stats come from a public unofficial webstore-style API
-- Not affiliated with Activision / TiMi
+- No live match spectating from the web (game-only)
+- No Activision password login on this site
+- Pings are regional estimates, not in-game UDP
+- Personal roster adds are per-browser; use `seedRoster` for a shared list
 
-## License
-
-MIT
+Not affiliated with Activision / TiMi. MIT license.
