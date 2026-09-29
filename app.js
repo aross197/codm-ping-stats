@@ -13,13 +13,21 @@ const REGIONS = [
   { id: 'oce', name: 'Oceania · Sydney', flag: '🇦🇺', url: 'https://dynamodb.ap-southeast-2.amazonaws.com' },
 ];
 
+const STORAGE_KEY = 'codm_friends';
+const DEFAULT_AVATAR = 'https://cdn1.codashop.com/S/content/webstore/codm/images/icon_playerlevel.png';
+
 const regionsEl = document.getElementById('regions');
 const testAllBtn = document.getElementById('test-all');
 const playerInput = document.getElementById('player-input');
 const lookupBtn = document.getElementById('lookup-btn');
 const statsResult = document.getElementById('stats-result');
+const friendsListEl = document.getElementById('friends-list');
+const emptyFriendsEl = document.getElementById('empty-friends');
+const refreshFriendsBtn = document.getElementById('refresh-friends');
 
-// Build region rows
+let lastLookup = null; // cache of last successful lookup for "Save to Friends"
+
+// ── Ping tester ──────────────────────────────────────────────
 REGIONS.forEach(r => {
   const row = document.createElement('div');
   row.className = 'region-row';
@@ -53,15 +61,12 @@ async function testRegion(id) {
   el.className = 'ping-value pending';
 
   try {
-    // Warm-up + median of a few samples for stability
     const samples = [];
     for (let i = 0; i < 4; i++) {
       const start = performance.now();
       await fetch(region.url, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
-      // no-cors doesn't give us status, but the round-trip still happens
       samples.push(performance.now() - start);
     }
-    // Drop first (connection setup), take median of rest
     samples.shift();
     samples.sort((a, b) => a - b);
     const median = Math.round(samples[Math.floor(samples.length / 2)]);
@@ -74,7 +79,19 @@ async function testRegion(id) {
   }
 }
 
-// Stats lookup
+// ── Stats API ────────────────────────────────────────────────
+async function fetchPlayer(q) {
+  const res = await fetch(`https://callofdutymobile.vercel.app/user/${encodeURIComponent(q)}`);
+  const data = await res.json();
+  if (!data.success) throw new Error(data.error || 'Player not found');
+  return data;
+}
+
+function playerKey(data) {
+  return (data.shortId || data.nickname || '').toLowerCase();
+}
+
+// ── Lookup UI ────────────────────────────────────────────────
 lookupBtn.addEventListener('click', lookupPlayer);
 playerInput.addEventListener('keydown', e => {
   if (e.key === 'Enter') lookupPlayer();
@@ -88,32 +105,12 @@ async function lookupPlayer() {
   lookupBtn.textContent = '…';
   statsResult.classList.add('hidden');
   statsResult.innerHTML = '';
+  lastLookup = null;
 
   try {
-    const res = await fetch(`https://callofdutymobile.vercel.app/user/${encodeURIComponent(q)}`);
-    const data = await res.json();
-
-    if (!data.success) {
-      throw new Error(data.error || 'Player not found');
-    }
-
-    const avatar = data.pic || 'https://cdn1.codashop.com/S/content/webstore/codm/images/icon_playerlevel.png';
-    const rankImg = data.rank?.image || '';
-
-    statsResult.innerHTML = `
-      <img class="avatar" src="${avatar}" alt="avatar" onerror="this.src='https://cdn1.codashop.com/S/content/webstore/codm/images/icon_playerlevel.png'" />
-      <div class="stats-info">
-        <h3>${escapeHtml(data.nickname || q)}</h3>
-        <div class="stats-meta">
-          <span>Level <strong>${data.level?.current ?? '—'}</strong></span>
-          <span>Rank <strong>${escapeHtml(data.rank?.multiplayerRank || '—')}</strong></span>
-          <span>Rating <strong>${data.rank?.rating ?? '—'}</strong></span>
-          <span>Country <strong>${escapeHtml(data.countryCode || '—')}</strong></span>
-          ${data.shortId ? `<span>ID <strong>${escapeHtml(data.shortId)}</strong></span>` : ''}
-        </div>
-      </div>
-    `;
-    statsResult.classList.remove('hidden');
+    const data = await fetchPlayer(q);
+    lastLookup = data;
+    renderLookupResult(data);
   } catch (err) {
     statsResult.innerHTML = `<p class="error-msg">${escapeHtml(err.message || 'Lookup failed. Try nickname or UID.')}</p>`;
     statsResult.classList.remove('hidden');
@@ -123,6 +120,181 @@ async function lookupPlayer() {
   }
 }
 
+function renderLookupResult(data) {
+  const avatar = data.pic || DEFAULT_AVATAR;
+  const alreadySaved = getFriends().some(f => playerKey(f) === playerKey(data));
+
+  statsResult.innerHTML = `
+    <img class="avatar" src="${escapeAttr(avatar)}" alt="avatar" onerror="this.src='${DEFAULT_AVATAR}'" />
+    <div class="stats-info">
+      <h3>${escapeHtml(data.nickname || 'Unknown')}</h3>
+      <div class="stats-meta">
+        <span>Level <strong>${data.level?.current ?? '—'}</strong></span>
+        <span>Rank <strong>${escapeHtml(data.rank?.multiplayerRank || '—')}</strong></span>
+        <span>Rating <strong>${data.rank?.rating ?? '—'}</strong></span>
+        <span>Country <strong>${escapeHtml(data.countryCode || '—')}</strong></span>
+        ${data.shortId ? `<span>ID <strong>${escapeHtml(data.shortId)}</strong></span>` : ''}
+      </div>
+    </div>
+    <button id="save-friend-btn" class="btn small ${alreadySaved ? 'secondary' : 'primary'}" ${alreadySaved ? 'disabled' : ''}>
+      ${alreadySaved ? 'Saved' : 'Save'}
+    </button>
+  `;
+  statsResult.classList.remove('hidden');
+
+  const saveBtn = document.getElementById('save-friend-btn');
+  if (saveBtn && !alreadySaved) {
+    saveBtn.addEventListener('click', () => {
+      addFriend(data);
+      saveBtn.textContent = 'Saved';
+      saveBtn.className = 'btn small secondary';
+      saveBtn.disabled = true;
+    });
+  }
+}
+
+// ── Friends (localStorage) ───────────────────────────────────
+function getFriends() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function setFriends(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function addFriend(data) {
+  const list = getFriends();
+  const key = playerKey(data);
+  if (list.some(f => playerKey(f) === key)) return;
+  list.unshift({
+    nickname: data.nickname,
+    shortId: data.shortId,
+    countryCode: data.countryCode,
+    pic: data.pic || '',
+    level: data.level?.current,
+    rank: data.rank?.multiplayerRank,
+    rating: data.rank?.rating,
+    query: data.shortId || data.nickname, // best key for re-fetch
+  });
+  setFriends(list);
+  renderFriends();
+}
+
+function removeFriend(key) {
+  const list = getFriends().filter(f => playerKey(f) !== key.toLowerCase());
+  setFriends(list);
+  renderFriends();
+}
+
+function renderFriends() {
+  const list = getFriends();
+  // Clear existing friend cards (keep empty message node)
+  friendsListEl.querySelectorAll('.friend-card').forEach(el => el.remove());
+
+  if (list.length === 0) {
+    emptyFriendsEl.style.display = 'block';
+    return;
+  }
+  emptyFriendsEl.style.display = 'none';
+
+  list.forEach(f => {
+    const key = playerKey(f);
+    const card = document.createElement('div');
+    card.className = 'friend-card';
+    card.dataset.key = key;
+    card.innerHTML = `
+      <img class="avatar sm" src="${escapeAttr(f.pic || DEFAULT_AVATAR)}" alt="" onerror="this.src='${DEFAULT_AVATAR}'" />
+      <div class="stats-info">
+        <h3>${escapeHtml(f.nickname || f.shortId || 'Unknown')}</h3>
+        <div class="stats-meta">
+          <span>Lv <strong>${f.level ?? '—'}</strong></span>
+          <span><strong>${escapeHtml(f.rank || '—')}</strong></span>
+          <span>★ <strong>${f.rating ?? '—'}</strong></span>
+          <span>${escapeHtml(f.countryCode || '')}</span>
+        </div>
+      </div>
+      <div class="friend-actions">
+        <button class="btn small secondary refresh-one" data-query="${escapeAttr(f.query || f.shortId || f.nickname)}">↻</button>
+        <button class="btn small danger-outline remove-one" data-key="${escapeAttr(key)}">✕</button>
+      </div>
+    `;
+    friendsListEl.appendChild(card);
+  });
+
+  friendsListEl.querySelectorAll('.remove-one').forEach(btn => {
+    btn.addEventListener('click', () => removeFriend(btn.dataset.key));
+  });
+  friendsListEl.querySelectorAll('.refresh-one').forEach(btn => {
+    btn.addEventListener('click', () => refreshOneFriend(btn.dataset.query, btn));
+  });
+}
+
+async function refreshOneFriend(query, btn) {
+  if (!query) return;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const data = await fetchPlayer(query);
+    const list = getFriends();
+    const key = playerKey(data);
+    const idx = list.findIndex(f => playerKey(f) === key || (f.query || '').toLowerCase() === query.toLowerCase());
+    if (idx >= 0) {
+      list[idx] = {
+        nickname: data.nickname,
+        shortId: data.shortId,
+        countryCode: data.countryCode,
+        pic: data.pic || '',
+        level: data.level?.current,
+        rank: data.rank?.multiplayerRank,
+        rating: data.rank?.rating,
+        query: data.shortId || data.nickname,
+      };
+      setFriends(list);
+      renderFriends();
+    }
+  } catch (e) {
+    btn.textContent = '!';
+    setTimeout(() => { btn.textContent = '↻'; btn.disabled = false; }, 1200);
+    return;
+  }
+  // re-render already reset buttons
+}
+
+refreshFriendsBtn.addEventListener('click', async () => {
+  const list = getFriends();
+  if (list.length === 0) return;
+  refreshFriendsBtn.disabled = true;
+  refreshFriendsBtn.textContent = '…';
+  for (const f of list) {
+    try {
+      const data = await fetchPlayer(f.query || f.shortId || f.nickname);
+      const key = playerKey(data);
+      const idx = list.findIndex(x => playerKey(x) === key || playerKey(x) === playerKey(f));
+      if (idx >= 0) {
+        list[idx] = {
+          nickname: data.nickname,
+          shortId: data.shortId,
+          countryCode: data.countryCode,
+          pic: data.pic || '',
+          level: data.level?.current,
+          rank: data.rank?.multiplayerRank,
+          rating: data.rank?.rating,
+          query: data.shortId || data.nickname,
+        };
+      }
+    } catch (_) { /* skip failed */ }
+  }
+  setFriends(list);
+  renderFriends();
+  refreshFriendsBtn.disabled = false;
+  refreshFriendsBtn.textContent = 'Refresh';
+});
+
+// ── Helpers ──────────────────────────────────────────────────
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, '&')
@@ -131,5 +303,9 @@ function escapeHtml(str) {
     .replace(/"/g, '"');
 }
 
-// Auto-run a quick test on load (optional)
-// setTimeout(() => testAllBtn.click(), 400);
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/'/g, '&#39;');
+}
+
+// Init
+renderFriends();
